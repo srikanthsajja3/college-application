@@ -104,6 +104,15 @@ export default function TabLayout() {
         }}
       />
 
+      <Tabs.Screen
+        name="leave"
+        options={{
+          title: 'Leave',
+          href: role === 'student' ? '/leave' : null,
+          tabBarIcon: ({ color }) => <SymbolView name="calendar.badge.plus" tintColor={color} />,
+        }}
+      />
+
       <Tabs.Screen 
         name="profile" 
         options={{ 

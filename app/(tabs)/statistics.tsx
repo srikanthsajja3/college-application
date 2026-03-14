@@ -1,11 +1,13 @@
 import { ThemedText as Text } from '../../components/themed-text';
 import { ThemedView as View } from '../../components/themed-view';
 import React, { useEffect, useState, useCallback } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, Modal, ScrollView, RefreshControl } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, Modal, ScrollView, RefreshControl, Alert } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { SymbolView } from 'expo-symbols';
 import { useAuth } from '../../hooks/useAuth';
 import { Unauthorized } from '../../components/unauthorized';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 export default function StatisticsScreen() {
   const { role, loading: authLoading } = useAuth();
@@ -13,6 +15,7 @@ export default function StatisticsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   const calculateStats = useCallback(async () => {
     try {
@@ -52,6 +55,61 @@ export default function StatisticsScreen() {
     }
   }, []);
 
+  const generatePDF = async () => {
+    setGeneratingPdf(true);
+    try {
+      const html = `
+        <html>
+          <head>
+            <style>
+              body { font-family: 'Helvetica', sans-serif; padding: 20px; }
+              h1 { color: #2e7d32; text-align: center; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+              th { backgroundColor: #2e7d32; color: white; }
+              tr:nth-child(even) { backgroundColor: #f9f9f9; }
+              .low { color: #d32f2f; font-weight: bold; }
+              .high { color: #2e7d32; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h1>Student Attendance Report</h1>
+            <p>Generated on: ${new Date().toLocaleString()}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Student Name</th>
+                  <th>Total Classes</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${stats.map(s => `
+                  <tr>
+                    <td>${s.name}</td>
+                    <td>${s.total}</td>
+                    <td>${s.present}</td>
+                    <td>${s.total - s.present}</td>
+                    <td class="${s.percentage < 75 ? 'low' : 'high'}">${s.percentage}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+    } catch (error: any) {
+      Alert.alert("Error", "Could not generate PDF: " + error.message);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   useEffect(() => {
     if (role === 'faculty' || role === 'hod' || role === 'proctor') {
       calculateStats();
@@ -78,8 +136,23 @@ export default function StatisticsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerSection}>
-        <Text type="title">Analytics</Text>
-        <Text style={styles.subtitle}>Performance overview across all students</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'transparent' }}>
+          <View style={{ backgroundColor: 'transparent' }}>
+            <Text type="title">Analytics</Text>
+            <Text style={styles.subtitle}>Performance overview</Text>
+          </View>
+          <TouchableOpacity 
+            style={[styles.pdfBtn, generatingPdf && { opacity: 0.5 }]} 
+            onPress={generatePDF}
+            disabled={generatingPdf}
+          >
+            {generatingPdf ? (
+              <ActivityIndicator color="#2e7d32" size="small" />
+            ) : (
+              <SymbolView name="doc.text.fill" size={20} tintColor="#2e7d32" />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.summaryCard}>
@@ -191,6 +264,7 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   headerSection: { marginBottom: 20, backgroundColor: 'transparent' },
   subtitle: { fontSize: 14, opacity: 0.6, marginTop: 4 },
+  pdfBtn: { backgroundColor: '#fff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#eee', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
   summaryCard: {
     flexDirection: 'row',
     backgroundColor: '#2e7d32',
