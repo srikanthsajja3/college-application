@@ -9,10 +9,10 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as Location from 'expo-location';
 import { SymbolView } from 'expo-symbols';
 
-// Define the campus location (Change these to your actual college coordinates)
+// PVPSIT Campus Location (Vijayawada)
 const CAMPUS_LOCATION = {
-  latitude: 17.3850, // Example: Hyderabad coordinates
-  longitude: 78.4867,
+  latitude: 16.4875, 
+  longitude: 80.6938,
   radius: 500, // 500 meters radius
 };
 
