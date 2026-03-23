@@ -13,12 +13,23 @@ export default function HodLeavesScreen() {
 
   const fetchLeaves = async () => {
     setLoading(true);
+    // Corrected join: student_uid matches students.id
+    // Corrected column: full_name and student_roll_no
     const { data, error } = await supabase
       .from('leave_requests')
-      .select('*, students(full_name, roll_number)')
+      .select(`
+        *,
+        students:student_uid (
+          full_name,
+          student_roll_no
+        )
+      `)
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
+    if (error) {
+      console.error("Fetch Leaves Error:", error);
+      Alert.alert("Error", "Could not fetch leave requests.");
+    } else if (data) {
       setLeaves(data);
     }
     setLoading(false);
@@ -58,9 +69,9 @@ export default function HodLeavesScreen() {
       ) : (
         leaves.map((leave) => (
           <View key={leave.id} style={styles.leaveCard}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, backgroundColor: 'transparent' }}>
               <Text style={styles.studentName}>{leave.students?.full_name || 'Unknown Student'}</Text>
-              <Text style={styles.studentDetail}>{leave.students?.roll_number} | {leave.date}</Text>
+              <Text style={styles.studentDetail}>{leave.students?.student_roll_no} | {leave.date}</Text>
               <Text style={styles.reasonText}>"{leave.reason}"</Text>
             </View>
 
@@ -99,11 +110,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, paddingTop: 60 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  leaveCard: { backgroundColor: '#fff', padding: 20, borderRadius: 15, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3, borderLeftWidth: 5, borderLeftColor: '#2e7d32' },
+  leaveCard: { backgroundColor: '#fff', padding: 20, borderRadius: 15, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3, borderLeftWidth: 5, borderLeftColor: '#2e7d32', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   studentName: { fontSize: 16, fontWeight: 'bold' },
   studentDetail: { fontSize: 12, color: '#666', marginBottom: 8 },
   reasonText: { fontSize: 14, fontStyle: 'italic', color: '#444' },
-  actions: { flexDirection: 'row', gap: 10 },
+  actions: { flexDirection: 'row', gap: 10, backgroundColor: 'transparent' },
   actionBtn: { width: 45, height: 45, borderRadius: 22.5, justifyContent: 'center', alignItems: 'center' },
   approveBtn: { backgroundColor: '#2e7d32' },
   rejectBtn: { backgroundColor: '#d32f2f' },

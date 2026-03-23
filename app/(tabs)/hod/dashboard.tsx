@@ -7,11 +7,13 @@ import { ActivityIndicator, Alert, FlatList, StyleSheet, TouchableOpacity } from
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../hooks/useAuth';
 import { Unauthorized } from '../../../components/unauthorized';
+import { useRouter } from 'expo-router';
 
 export default function HODDashboard() {
   const { role, loading: authLoading } = useAuth();
   const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (role === 'hod') {
@@ -42,10 +44,23 @@ export default function HODDashboard() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text type="title">HOD Panel</Text>
-        <TouchableOpacity style={styles.addBtn}>
-          <SymbolView name="plus.circle.fill" tintColor="#fff" size={24} />
-          <Text style={styles.addText}>New Batch</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+           <TouchableOpacity 
+            style={[styles.addBtn, { backgroundColor: '#1565c0', marginRight: 10 }]} 
+            onPress={() => router.push('/hod/leaves')}
+          >
+            <SymbolView name="calendar.badge.exclamationmark" tintColor="#fff" size={20} />
+            <Text style={styles.addText}>Leaves</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.addBtn} 
+            onPress={() => router.push('/hod/add-batch')}
+          >
+            <SymbolView name="plus.circle.fill" tintColor="#fff" size={20} />
+            <Text style={styles.addText}>Batch</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -78,8 +93,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, paddingTop: 60 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25, backgroundColor: 'transparent' },
+  headerActions: { flexDirection: 'row', backgroundColor: 'transparent' },
   addBtn: { backgroundColor: '#2e7d32', flexDirection: 'row', padding: 10, borderRadius: 12, alignItems: 'center' },
-  addText: { color: '#fff', marginLeft: 8, fontWeight: '600' },
+  addText: { color: '#fff', marginLeft: 8, fontWeight: '600', fontSize: 13 },
   batchCard: { padding: 20, borderRadius: 15, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 2 },
   cardInfo: { backgroundColor: 'transparent' },
   batchTitle: { fontSize: 18, fontWeight: 'bold' },

@@ -19,6 +19,12 @@ export default function TabLayout() {
     );
   }
 
+  // Define boolean flags for clarity
+  const isStudent = role === 'student';
+  const isHod = role === 'hod';
+  const isProctor = role === 'proctor';
+  const isFaculty = role === 'faculty'; // Mentor is usually faculty role
+
   return (
     <Tabs 
       screenOptions={{ 
@@ -35,6 +41,7 @@ export default function TabLayout() {
         sceneStyle: { backgroundColor }
       }}
     >
+      {/* 1. HOME - Everyone sees this */}
       <Tabs.Screen 
         name="index" 
         options={{ 
@@ -43,76 +50,77 @@ export default function TabLayout() {
         }} 
       />
 
-      {/* Role-Based Tabs */}
-      
-      {/* HOD TAB: Visible only if role is hod */}
+      {/* 2. HOD Dashboard - Only for HOD */}
       <Tabs.Screen
         name="hod/dashboard"
         options={{
           title: 'HOD',
-          href: role === 'hod' ? '/hod/dashboard' : null,
+          href: isHod ? '/hod/dashboard' : null,
           tabBarIcon: ({ color }) => <SymbolView name="crown.fill" tintColor={color} />,
         }}
       />
 
-      {/* PROCTOR TAB: Visible only if role is proctor */}
+      {/* 3. Proctor Dashboard - Only for Proctor */}
       <Tabs.Screen
         name="proctor/dashboard"
         options={{
           title: 'Proctor',
-          href: role === 'proctor' ? '/proctor/dashboard' : null,
+          href: isProctor ? '/proctor/dashboard' : null,
           tabBarIcon: ({ color }) => <SymbolView name="briefcase.fill" tintColor={color} />,
         }}
       />
 
-      {/* FACULTY/HOD TAB: Mark Attendance */}
+      {/* 4. Mark Attendance - Only for HOD and Faculty (Mentors) */}
       <Tabs.Screen
         name="attendance"
         options={{
           title: 'Mark',
-          href: (role === 'faculty' || role === 'hod') ? '/attendance' : null,
+          href: (isFaculty || isHod) ? '/attendance' : null,
           tabBarIcon: ({ color }) => <SymbolView name="checkmark.seal.fill" tintColor={color} />,
         }}
       />
 
-      {/* FACULTY/HOD/PROCTOR TAB: Statistics */}
+      {/* 5. Statistics - For HOD, Proctor, and Faculty */}
       <Tabs.Screen
         name="statistics"
         options={{
           title: 'Stats',
-          href: (role === 'faculty' || role === 'hod' || role === 'proctor') ? '/statistics' : null,
+          href: (isFaculty || isHod || isProctor) ? '/statistics' : null,
           tabBarIcon: ({ color }) => <SymbolView name="chart.bar.fill" tintColor={color} />,
         }}
       />
 
-      {/* STUDENT TABS */}
+      {/* 6. My Attendance - Only for Students */}
       <Tabs.Screen
         name="my-attendance"
         options={{
-          title: 'Attendance',
-          href: role === 'student' ? '/my-attendance' : null,
+          title: 'My Attendance',
+          href: isStudent ? '/my-attendance' : null,
           tabBarIcon: ({ color }) => <SymbolView name="person.text.rectangle.fill" tintColor={color} />,
         }}
       />
 
+      {/* 7. Payments - Only for Students */}
       <Tabs.Screen
         name="payments"
         options={{
           title: 'Fees',
-          href: role === 'student' ? '/payments' : null,
+          href: isStudent ? '/payments' : null,
           tabBarIcon: ({ color }) => <SymbolView name="creditcard.fill" tintColor={color} />,
         }}
       />
 
+      {/* 8. Leave - Only for Students (to apply) */}
       <Tabs.Screen
         name="leave"
         options={{
           title: 'Leave',
-          href: role === 'student' ? '/leave' : null,
+          href: isStudent ? '/leave' : null,
           tabBarIcon: ({ color }) => <SymbolView name="calendar.badge.plus" tintColor={color} />,
         }}
       />
 
+      {/* 9. Profile - Everyone sees this */}
       <Tabs.Screen 
         name="profile" 
         options={{ 
@@ -121,8 +129,11 @@ export default function TabLayout() {
         }} 
       />
 
-      {/* Hidden Screens (not showing in tab bar but accessible) */}
+      {/* 10. Hidden Screens - Explicitly hide ALL extra files in (tabs) folder */}
       <Tabs.Screen name="history" options={{ href: null }} />
+      <Tabs.Screen name="hod/leaves" options={{ href: null }} />
+      <Tabs.Screen name="hod/add-batch" options={{ href: null }} />
+      {/* Note: proctor/manage-batch is in app/ root, so it's not even a tab here, but keeping it safe */}
     </Tabs>
   );
 }
